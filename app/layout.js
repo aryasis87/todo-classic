@@ -3,10 +3,10 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
-const __jsonld = {"@context":"https://schema.org","@type":"WebApplication","name":"Hari Ini","description":"To-do list minimal & fokus","url":"https://todo-classic.vercel.app","applicationCategory":"ProductivityApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"IDR"}};
+const __jsonld = {"@context":"https://schema.org","@type":"WebApplication","name":"Hari Ini","description":"To-do list minimal & fokus","url":"https://classic-todo.pintuweb.com","applicationCategory":"ProductivityApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"IDR"}};
 
 export const metadata = {
-  metadataBase: new URL("https://todo-classic.vercel.app"),
+  metadataBase: new URL("https://classic-todo.pintuweb.com"),
   title: "Hari Ini — Daftar Tugas Minimal & Fokus",
   description: "Aplikasi to-do list minimal & fokus: progress harian, quick-add mengambang, dan dark mode premium.",
   applicationName: "Hari Ini",
@@ -14,11 +14,11 @@ export const metadata = {
   authors: [{ name: "Hari Ini" }],
   creator: "Hari Ini",
   publisher: "Hari Ini",
-  alternates: { canonical: "https://todo-classic.vercel.app" },
+  alternates: { canonical: "https://classic-todo.pintuweb.com" },
   openGraph: {
     type: "website",
     locale: "id_ID",
-    url: "https://todo-classic.vercel.app",
+    url: "https://classic-todo.pintuweb.com",
     siteName: "Hari Ini",
     title: "Hari Ini — Daftar Tugas Minimal & Fokus",
     description: "Aplikasi to-do list minimal & fokus: progress harian, quick-add mengambang, dan dark mode premium.",
