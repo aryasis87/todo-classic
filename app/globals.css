@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+/* ============================================================
+   "Hari Ini" — Minimal Focus list (redesign dari Google Stitch).
+   Identitas: editorial, progress arc gradien, floating add bar,
+   tekstur grain. .dark menimpa var → dark mode premium (deep ink).
+   ============================================================ */
+@theme {
+  --color-primary: #4648d4;
+  --color-primary-container: #6063ee;
+  --color-primary-fixed: #e1e0ff;
+  --color-primary-fixed-dim: #c0c1ff;
+  --color-on-primary: #ffffff;
+
+  --color-secondary: #6b38d4;
+  --color-secondary-container: #8455ef;   /* ujung gradien signature */
+
+  --color-background: #fcf9f8;
+  --color-surface: #fcf9f8;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f6f3f2;
+  --color-surface-container: #f0eded;
+  --color-surface-container-high: #eae7e7;
+  --color-surface-container-highest: #e5e2e1;
+  --color-surface-variant: #e5e2e1;
+  --color-surface-dim: #dcd9d9;
+
+  --color-on-surface: #1c1b1b;
+  --color-on-surface-variant: #464554;
+  --color-outline: #767586;
+  --color-outline-variant: #c7c4d7;
+
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  --color-inverse-surface: #313030;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+.dark {
+  --color-primary: #c0c1ff;              /* glowing indigo */
+  --color-secondary: #d0bcff;
+  --color-secondary-container: #8455ef;
+
+  --color-background: #0d0d0d;            /* deep ink/charcoal */
+  --color-surface: #0d0d0d;
+  --color-surface-container-lowest: #161616;
+  --color-surface-container-low: #161515;
+  --color-surface-container: #1c1b1b;
+  --color-surface-container-high: #313030;
+  --color-surface-container-highest: #313030;
+  --color-surface-variant: #313030;
+  --color-surface-dim: #0d0d0d;
+
+  --color-on-surface: #ffffff;
+  --color-on-surface-variant: #c7c4d7;
+  --color-outline: #767586;
+  --color-outline-variant: #464554;
+
+  --color-error: #ffb4ab;
+  --color-error-container: #5c1410;
+  --color-on-error-container: #ffdad6;
+
+  --color-inverse-surface: #fcf9f8;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background-color: var(--color-background);
+  color: var(--color-on-surface);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Tekstur grain halus (tactile) */
+.grain-overlay {
+  position: fixed; inset: 0; pointer-events: none; z-index: 60; opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.dark .grain-overlay { opacity: 0.06; }
+
+/* Bayangan ambient untuk elemen mengambang */
+.ambient-shadow {
+  box-shadow: 0 24px 48px -12px color-mix(in srgb, var(--color-primary) 18%, transparent),
+              0 0 0 1px color-mix(in srgb, var(--color-outline) 12%, transparent);
+}
+
+/* Checkbox gradien + animasi centang */
+.check-grad { background-image: linear-gradient(135deg, var(--color-primary), var(--color-secondary-container)); }
+
+/* Arc progress */
+.progress-arc { transition: stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: 8px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
