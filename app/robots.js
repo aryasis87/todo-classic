@@ -1,7 +1,7 @@
 export default function robots() {
   return {
     rules: { userAgent: "*", allow: "/" },
-    sitemap: "https://classic-todo.pintuweb.com/sitemap.xml",
-    host: "https://classic-todo.pintuweb.com",
+    sitemap: "https://todo-classic.vercel.app/sitemap.xml",
+    host: "https://todo-classic.vercel.app",
   };
 }
