@@ -1,5 +1,6 @@
+const URL = 'https://todo-classic.vercel.app';
+
 export default function sitemap() {
-  return [
-    { url: "https://todo-classic.vercel.app", lastModified: new Date(), changeFrequency: "monthly", priority: 1 },
-  ];
+  const now = new Date();
+  return ['', '/rekap', '/panduan'].map((p) => ({ url: URL + p, lastModified: now, changeFrequency: 'monthly', priority: p ? 0.6 : 1 }));
 }

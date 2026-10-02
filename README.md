@@ -1,39 +1,34 @@
-# Hari Ini — Daftar Tugas Minimal & Fokus
+# Hari Ini — Satu daftar untuk satu hari
 
-To-do list yang tenang dan fokus, varian dasar dari tiga aplikasi to-do (Hari Ini, TaskFlow, Tuntas).
+Daftar tugas yang sengaja hanya untuk hari ini. Yang selesai pindah ke rekap besoknya; yang belum selesai ikut terbawa dengan tanda "terbawa N hari". Editorial: judul serif miring, cincin progres bergradien, bilah tambah mengambang.
 
 **Demo live:** https://todo-classic.vercel.app
 
-![Tangkapan layar Hari Ini](public/og.jpg)
+![Tangkapan layar](public/og.jpg)
 
-> Data tersimpan di browser (localStorage), tanpa backend.
-
-## Konsep
-
-Tata letak editorial dengan judul besar "Fokus pada yang penting." Ciri khasnya adalah **busur progres** bergradien yang menunjukkan berapa tugas yang sudah selesai, bilah tambah tugas yang melayang, dan tekstur grain halus. Mode gelapnya memakai tinta pekat, bukan abu-abu.
+> Data tersimpan di `localStorage` peramban — tanpa akun dan tanpa server. Kunjungan pertama diisi data contoh yang tanggalnya relatif terhadap hari ini; tanggal dan jam dihitung dalam WIB.
 
 ## Fitur
 
-- Tambah tugas dari bilah melayang, bisa dibuka dengan **⌘K / Ctrl+K**
-- **Edit inline** dengan klik ganda, centang selesai, hapus
-- Filter **Semua / Aktif / Selesai** di sidebar lengkap dengan jumlahnya
-- **Hapus yang selesai** sekaligus
-- Penanda prioritas dan waktu pada tiap tugas
-- Mode gelap/terang
-- Tersimpan di localStorage (kunci `focus.todos`), aman dari hydration mismatch
+- Bilah tambah memahami jam dan prioritas: `Telepon klien 14.00 !` → jam 14.00, prioritas; pratinjau tampil sebelum disimpan. Ctrl/⌘ + K untuk fokus.
+- Jam yang sudah lewat (WIB) ditandai; tugas terbawa ditandai jumlah harinya.
+- Ubah teks (klik ganda atau tombol), tandai prioritas, hapus dengan "urungkan".
+- `/rekap` — tugas selesai per hari selama 7 hari, streak, dan daftar per hari.
+- `/panduan` — sintaks bilah tambah, pintasan, dan cara kerja.
+- Mode terang & gelap.
 
-## Struktur
+## Halaman
 
-- `components/FocusApp.jsx` — state utama, filter, tema
-- `components/Sidebar.jsx` — merek, navigasi filter dengan jumlah, tombol tema, hapus yang selesai
-- `components/ProgressArc.jsx` — busur progres selesai/total
-- `components/TaskRow.jsx` — baris tugas, edit inline, penanda prioritas
-- `components/AddBar.jsx` — bilah tambah tugas melayang (⌘K)
-- `lib/useLocalStorage.js` — hook penyimpanan
+`/` · `/panduan` · `/rekap`
 
 ## Teknologi
 
-Next.js 15.5 (App Router) · React 19 · Tailwind CSS v4 · lucide-react
+- Next.js 15.5 (App Router) dan React 19
+- Tailwind CSS v4 (token tema + `.dark`)
+- JavaScript
+- Lucide (ikon)
+- Font: Instrument Serif (judul), Inter (next/font)
+- SEO: metadata per halaman, Open Graph, JSON-LD, sitemap.xml, dan robots.txt
 
 ## Menjalankan secara lokal
 
@@ -42,8 +37,8 @@ npm install
 npm run dev
 ```
 
-Buka http://localhost:3000.
+Buka http://localhost:3000. Untuk build produksi: `npm run build` lalu `npm start`.
 
 ---
 
-Bagian dari koleksi 3 aplikasi to-do di [PortalTodo](https://portal-todo.vercel.app). Dibuat oleh [PintuWeb](https://pintuweb.com), jasa pembuatan website.
+Bagian dari koleksi 3 aplikasi daftar tugas di [PortalTodo](https://portal-todo.vercel.app). Dibuat oleh [PintuWeb](https://pintuweb.com), jasa pembuatan website.

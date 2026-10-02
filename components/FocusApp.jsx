@@ -1,19 +1,14 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
-import { Moon, Sun } from 'lucide-react';
+import Link from 'next/link';
 import { useLocalStorage } from '@/lib/useLocalStorage';
-import Sidebar from './Sidebar';
+import { useHariIni } from '@/lib/useHariIni';
+import { fmtTanggal, selisihHari } from '@/lib/waktu';
+import { KUNCI, contoh, uraiInput, tanggalDari } from '@/lib/tugas';
+import Sidebar, { TemaTombol } from './Sidebar';
 import ProgressArc from './ProgressArc';
 import TaskRow from './TaskRow';
 import AddBar from './AddBar';
-
-const SEED = [
-  { id: 1, text: 'Tinjau desain antarmuka portal klien', done: true },
-  { id: 2, text: 'Siapkan draf proposal kuartal Q4', done: false, time: 'Hari ini, 14:00' },
-  { id: 3, text: 'Balas email tim editorial mengenai revisi copy', done: false },
-  { id: 4, text: 'Sinkronisasi data sistem lama ke server baru', done: false, priority: true },
-  { id: 5, text: 'Meditasi 10 menit', done: false },
-];
 
 const FILTERS = [
   { key: 'all', label: 'Semua' },
@@ -21,117 +16,125 @@ const FILTERS = [
   { key: 'completed', label: 'Selesai' },
 ];
 
-function MobileThemeToggle() {
-  const [dark, setDark] = useState(false);
-  useEffect(() => { setDark(document.documentElement.classList.contains('dark')); }, []);
-  const toggle = () => {
-    const next = !dark;
-    setDark(next);
-    document.documentElement.classList.toggle('dark', next);
-    try { localStorage.setItem('taskflow.theme', next ? 'dark' : 'light'); } catch {}
-  };
-  return (
-    <button onClick={toggle} aria-label="Ganti tema" className="rounded-full p-2 text-primary transition-colors hover:bg-surface-container-high/50">
-      {dark ? <Sun size={22} /> : <Moon size={22} />}
-    </button>
-  );
-}
-
 export default function FocusApp() {
-  const [todos, setTodos, loaded] = useLocalStorage('focus.todos', SEED);
+  const { hari, sekarang } = useHariIni(60);
+  const [todos, setTodos, loaded] = useLocalStorage(KUNCI, null);
   const [filter, setFilter] = useState('all');
   const [text, setText] = useState('');
+  const [terhapus, setTerhapus] = useState(null);
 
+  // Kunjungan pertama: isi contoh yang tanggalnya relatif terhadap hari ini.
+  useEffect(() => { if (loaded && todos === null) setTodos(contoh()); }, [loaded, todos, setTodos]);
+  // Notifikasi "urungkan" hilang sendiri.
+  useEffect(() => { if (!terhapus) return; const t = setTimeout(() => setTerhapus(null), 6000); return () => clearTimeout(t); }, [terhapus]);
+
+  const semua = todos || [];
   const add = (e) => {
     e.preventDefault();
-    const v = text.trim();
-    if (!v) return;
-    setTodos((p) => [{ id: Date.now(), text: v, done: false }, ...p]);
+    if (!text.trim() || !hari) return;
+    const u = uraiInput(text);
+    setTodos((p) => [{ id: Date.now(), done: false, tanggal: hari, dibuat: new Date().toISOString(), ...u }, ...(p || [])]);
     setText('');
   };
-  const toggle = (id) => setTodos((p) => p.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
+  const toggle = (id) => setTodos((p) => p.map((t) => (t.id === id ? { ...t, done: !t.done, doneAt: t.done ? null : new Date().toISOString() } : t)));
   const editTask = (id, newText) => setTodos((p) => p.map((t) => (t.id === id ? { ...t, text: newText } : t)));
-  const remove = (id) => setTodos((p) => p.filter((t) => t.id !== id));
-  const clearCompleted = () => setTodos((p) => p.filter((t) => !t.done));
+  const togglePrioritas = (id) => setTodos((p) => p.map((t) => (t.id === id ? { ...t, priority: !t.priority } : t)));
+  const remove = (id) => {
+    const i = semua.findIndex((t) => t.id === id);
+    setTerhapus({ tugas: semua[i], i });
+    setTodos((p) => p.filter((t) => t.id !== id));
+  };
+  const urungkan = () => {
+    if (!terhapus) return;
+    setTodos((p) => { const n = [...p]; n.splice(terhapus.i, 0, terhapus.tugas); return n; });
+    setTerhapus(null);
+  };
 
-  const done = todos.filter((t) => t.done).length;
-  const total = todos.length;
+  // Hari ini = tugas aktif (termasuk yang terbawa dari hari sebelumnya) + yang selesai hari ini.
+  const hariIni = useMemo(() => (hari ? semua.filter((t) => !t.done || (t.doneAt && tanggalDari(t.doneAt) === hari)) : []), [semua, hari]);
+  const done = hariIni.filter((t) => t.done).length;
+  const total = hariIni.length;
   const counts = { all: total, active: total - done, completed: done };
+  const clearCompleted = () => setTodos((p) => p.filter((t) => !(t.done && tanggalDari(t.doneAt) === hari)));
 
   const visible = useMemo(() => {
-    if (filter === 'active') return todos.filter((t) => !t.done);
-    if (filter === 'completed') return todos.filter((t) => t.done);
-    return todos;
-  }, [todos, filter]);
-
-  const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const urut = [...hariIni].sort((a, b) => (a.done - b.done) || (b.priority - a.priority) || (a.jam || '99').localeCompare(b.jam || '99'));
+    if (filter === 'active') return urut.filter((t) => !t.done);
+    if (filter === 'completed') return urut.filter((t) => t.done);
+    return urut;
+  }, [hariIni, filter]);
 
   return (
     <div className="relative flex min-h-screen bg-background">
-      <div className="grain-overlay" />
+      <div className="grain-overlay" aria-hidden="true" />
 
       <Sidebar filter={filter} onFilter={setFilter} counts={counts} completed={done} onClearCompleted={clearCompleted} />
 
       <main className="relative min-w-0 flex-1">
-        {/* Top bar mobile */}
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-surface-container-highest/40 bg-surface/70 px-5 py-4 backdrop-blur-xl md:hidden">
-          <h1 className="text-2xl font-bold tracking-tight text-primary">Hari ini</h1>
-          <MobileThemeToggle />
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-surface-container-highest/40 bg-surface/80 px-5 py-3 backdrop-blur-xl md:hidden">
+          <p className="font-display text-2xl text-primary">Hari Ini</p>
+          <nav aria-label="Halaman" className="flex items-center gap-1 text-sm font-semibold">
+            <Link href="/rekap" className="rounded-full px-3 py-1.5 text-on-surface-variant hover:bg-surface-container-high/60">Rekap</Link>
+            <Link href="/panduan" className="rounded-full px-3 py-1.5 text-on-surface-variant hover:bg-surface-container-high/60">Panduan</Link>
+            <TemaTombol ringkas />
+          </nav>
         </header>
 
-        <div className="no-scrollbar mx-auto w-full max-w-2xl px-5 pb-40 pt-8 md:px-10 md:pt-12">
-          {/* Header editorial + progress */}
+        <div className="mx-auto w-full max-w-2xl px-5 pb-44 pt-8 md:px-10 md:pt-12">
           <section className="mb-12 flex flex-col justify-between gap-8 md:flex-row md:items-end">
             <div>
-              <h2 className="text-4xl font-extrabold leading-[1.1] tracking-tight text-on-surface md:text-5xl">
-                Fokus pada<br />yang penting.
-              </h2>
-              <p className="mt-4 text-lg text-on-surface-variant">{today}</p>
+              <h1 className="font-display text-5xl leading-[1.05] text-on-surface md:text-6xl">
+                Fokus pada<br /><em className="text-primary">yang penting.</em>
+              </h1>
+              <p className="mt-4 text-lg text-on-surface-variant">{hari ? fmtTanggal(hari, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : ' '}</p>
             </div>
             <ProgressArc done={done} total={total} />
           </section>
 
-          {/* Filter tabs (mobile/tablet; di web ada di sidebar) */}
-          <div className="mb-8 flex items-center gap-6 border-b border-surface-container-highest/50 md:hidden">
+          <div className="mb-8 flex items-center gap-6 border-b border-surface-container-highest/50 md:hidden" role="group" aria-label="Saring">
             {FILTERS.map((f) => (
-              <button
-                key={f.key}
-                onClick={() => setFilter(f.key)}
-                className={`-mb-px border-b-2 pb-2.5 text-sm font-semibold transition-all ${
-                  filter === f.key ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                {f.label}
+              <button key={f.key} type="button" onClick={() => setFilter(f.key)} aria-pressed={filter === f.key}
+                className={`-mb-px border-b-2 pb-2.5 text-sm font-semibold transition-all ${filter === f.key ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant hover:text-on-surface'}`}>
+                {f.label} <span className="font-normal">({counts[f.key]})</span>
               </button>
             ))}
           </div>
 
-          {/* List */}
-          {!loaded ? (
+          <h2 className="sr-only">Daftar tugas</h2>
+          {!loaded || !hari || todos === null ? (
             <p className="py-16 text-center text-sm text-on-surface-variant">Memuat…</p>
           ) : visible.length === 0 ? (
             <div className="py-16 text-center">
-              <p className="text-lg font-semibold text-on-surface-variant">
-                {done === total && total > 0 ? 'Semua selesai! 🎉' : filter === 'completed' ? 'Belum ada yang selesai.' : 'Tidak ada tugas. Nikmati harimu.'}
+              <p className="font-display text-2xl text-on-surface">
+                {total > 0 && done === total ? 'Semua selesai.' : filter === 'completed' ? 'Belum ada yang selesai hari ini.' : 'Tidak ada tugas.'}
               </p>
+              <p className="mt-2 text-sm text-on-surface-variant">{total > 0 && done === total ? 'Lihat rekap minggu ini, atau tutup laptop.' : 'Tulis satu hal yang ingin kamu selesaikan hari ini.'}</p>
+              {total > 0 && done === total && <Link href="/rekap" className="mt-4 inline-block text-sm font-semibold text-primary underline underline-offset-4">Buka rekap</Link>}
             </div>
           ) : (
-            <div className="flex flex-col gap-1">
+            <ul className="flex flex-col gap-1">
               {visible.map((task) => (
-                <TaskRow key={task.id} task={task} onToggle={toggle} onEdit={editTask} onRemove={remove} />
+                <TaskRow key={task.id} task={task} terbawa={!task.done && task.tanggal < hari ? selisihHari(task.tanggal, hari) : 0} sekarang={sekarang}
+                  onToggle={toggle} onEdit={editTask} onRemove={remove} onPrioritas={togglePrioritas} />
               ))}
-            </div>
+            </ul>
           )}
 
-          {/* Hapus selesai (mobile) */}
           {done > 0 && (
             <div className="mt-6 md:hidden">
-              <button onClick={clearCompleted} className="text-sm font-medium text-on-surface-variant transition-colors hover:text-error">
-                Hapus selesai ({done})
+              <button type="button" onClick={clearCompleted} className="text-sm font-medium text-on-surface-variant transition-colors hover:text-error">
+                Hapus yang selesai hari ini ({done})
               </button>
             </div>
           )}
         </div>
+
+        {terhapus && (
+          <div role="status" className="fixed bottom-28 left-1/2 z-50 flex -translate-x-1/2 items-center gap-4 rounded-xl bg-on-surface px-4 py-3 text-sm text-background shadow-lg md:left-[calc(50%+9rem)]">
+            <span>Tugas dihapus.</span>
+            <button type="button" onClick={urungkan} className="font-semibold underline underline-offset-4">Urungkan</button>
+          </div>
+        )}
 
         <AddBar value={text} onChange={setText} onSubmit={add} />
       </main>
